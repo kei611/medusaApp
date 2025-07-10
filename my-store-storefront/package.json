@@ -20,8 +20,9 @@
     "@medusajs/medusa-js": "^6.1.10",
     "@medusajs/ui": "latest",
     "@radix-ui/react-accordion": "^1.2.1",
+    "@sanity/client": "^7.6.0",
     "@stripe/react-stripe-js": "^1.7.2",
-    "@stripe/stripe-js": "^1.29.0",
+    "@stripe/stripe-js": "^1.54.2",
     "lodash": "^4.17.21",
     "next": "^15.3.1",
     "pg": "^8.11.3",
@@ -29,8 +30,10 @@
     "react": "19.0.0-rc-66855b96-20241106",
     "react-country-flag": "^3.1.0",
     "react-dom": "19.0.0-rc-66855b96-20241106",
+    "react-force-graph-3d": "^1.28.0",
     "server-only": "^0.0.1",
     "tailwindcss-radix": "^2.8.0",
+    "three": "^0.178.0",
     "webpack": "^5"
   },
   "devDependencies": {
