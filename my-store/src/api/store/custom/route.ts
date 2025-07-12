@@ -11,7 +11,7 @@ import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2022-11-15",
+  apiVersion: "2024-04-10",
 });
 
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
@@ -20,13 +20,13 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
   try {
-    const { cart_id } = req.body;
+    const { cart_id } = req.body as { cart_id: string };
     if (!cart_id) {
       return res.status(400).json({ message: "cart_id is required" });
     }
 
     // MedusaのcartServiceをDIコンテナから取得
-    const cartService = req.scope.resolve("cartService");
+    const cartService = req.scope.resolve("cartService") as any;
     const cart = await cartService.retrieve(cart_id);
 
     if (!cart) {
