@@ -1,20 +1,26 @@
 import { loadEnv, defineConfig } from '@medusajs/framework/utils'
-import {Modules} from '@medusajs/utils'
+// import { Modules } from '@medusajs/utils'
+import { Modules } from "@medusajs/framework/utils"
+
 
 loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 
-module.exports = defineConfig({
+console.log("S3 BASE URL:", process.env.S3_BASE_URL)
+console.log('Driver:', process.env.FILESYSTEM_DRIVER)
+
+export default defineConfig({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
     http: {
       storeCors: process.env.STORE_CORS!,
       adminCors: process.env.ADMIN_CORS!,
       authCors: process.env.AUTH_CORS!,
-      jwtSecret: process.env.JWT_SECRET || "supersecret",
-      cookieSecret: process.env.COOKIE_SECRET || "supersecret",
-    }
+      jwtSecret: process.env.JWT_SECRET || 'supersecret',
+      cookieSecret: process.env.COOKIE_SECRET || 'supersecret',
+    },
   },
-    plugins: [
+
+  plugins: [
     {
       resolve: '@medusajs/payment-stripe',
       options: {
@@ -23,6 +29,7 @@ module.exports = defineConfig({
       },
     },
   ],
+
   modules: {
     [Modules.PAYMENT]: {
       resolve: '@medusajs/payment',
@@ -38,21 +45,25 @@ module.exports = defineConfig({
         ],
       },
     },
+
+    [Modules.FILE]: {
+      resolve: '@medusajs/medusa/file',
+      options: {
+        default_provider: 's3',
+        providers: [
+          {
+            resolve: '@medusajs/medusa/file-s3',
+            id: 's3',
+            options: {
+              region: 'ap-northeast-1',
+              bucket: 'medusa-store-assets-images',
+              access_key_id: process.env.S3_ACCESS_KEY_ID,
+              secret_access_key: process.env.S3_SECRET_ACCESS_KEY,
+              file_url: process.env.S3_BASE_URL,
+            },
+          },
+        ],
+      },
+    },
   },
-  // modules: [
-  //   {
-  //     resolve: '@medusajs/medusa/payment',
-  //     options: {
-  //       providers: [
-  //         {
-  //           resolve: '@medusajs/payment-stripe',
-  //           id: 'stripe',
-  //           options: {
-  //             apiKey: process.env.STRIPE_SECRET_KEY,
-  //           },
-  //         },
-  //       ],
-  //     },
-  //   },
-  // ],
 })
