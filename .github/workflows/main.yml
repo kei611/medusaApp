@@ -87,7 +87,7 @@ jobs:
             # pm2 で Medusa バックエンドを起動/再起動
             echo "Restarting Medusa Backend with PM2..."
             pm2 delete medusa-backend || true # 既存のプロセスがあれば削除 (初回はエラーになるので || true)
-            pm2 start ./.medusa/server/main.js --name medusa-backend --interpreter=node -- restart
+            pm2 start --name medusa-backend npm -- start
             pm2 save # pm2設定を保存 (再起動後もプロセスが自動で立ち上がるように)
             cd .. # プロジェクトルートに戻る
 
@@ -102,7 +102,7 @@ jobs:
             # pm2 で Next.js ストアフロントを起動/再起動
             echo "Restarting Next.js Storefront with PM2..."
             pm2 delete medusa-storefront || true
-            pm2 start ./.next/standalone/server.js --name medusa-storefront --interpreter=node -- restart
+            pm2 start --name medusa-storefront npm -- start
             pm2 save
             cd .. # プロジェクトルートに戻る
 
