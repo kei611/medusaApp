@@ -45,7 +45,8 @@ jobs:
           key: ${{ env.SSH_PRIVATE_KEY }}
           script: |
             # EC2上のプロジェクトルートディレクトリに移動
-            PROJECT_DIR="/home/${{ env.EC2_USER }}/your-medusa-project" # あなたのプロジェクトディレクトリのパスに置き換える
+            # ★ここを 'medusaApp' に変更
+            PROJECT_DIR="/home/${{ env.EC2_USER }}/medusaApp"
             cd ${PROJECT_DIR}
 
             # Gitから最新のコードをプル
@@ -75,7 +76,7 @@ jobs:
 
             # --- Medusa Backend のデプロイ ---
             echo "Deploying Medusa Backend..."
-            cd my-store # ここを 'my-store' に変更
+            cd my-store # このパスは変更なし
             echo "Installing Backend dependencies..."
             npm install --production=false # 開発依存関係もインストール (ビルドのため)
             echo "Building Medusa Backend..."
@@ -85,14 +86,14 @@ jobs:
 
             # pm2 で Medusa バックエンドを起動/再起動
             echo "Restarting Medusa Backend with PM2..."
-            pm2 delete my-store || true # 既存のプロセスがあれば削除 (初回はエラーになるので || true)
-            pm2 start npm --name my-store -- run start # package.jsonのstartスクリプトを実行
+            pm2 delete medusa-backend || true # 既存のプロセスがあれば削除 (初回はエラーになるので || true)
+            pm2 start npm --name medusa-backend -- run start # package.jsonのstartスクリプトを実行
             pm2 save # pm2設定を保存 (再起動後もプロセスが自動で立ち上がるように)
             cd .. # プロジェクトルートに戻る
 
             # --- Next.js Storefront のデプロイ ---
             echo "Deploying Next.js Storefront..."
-            cd my-store-storefront # ここは変更なし
+            cd my-store-storefront # このパスは変更なし
             echo "Installing Storefront dependencies..."
             npm install --production=false # 開発依存関係もインストール (ビルドのため)
             echo "Building Next.js Storefront..."
