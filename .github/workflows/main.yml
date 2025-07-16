@@ -56,7 +56,7 @@ jobs:
             # 環境変数ファイルを更新 (本番環境のパスと環境変数を正確に書き込む)
             echo "Updating .env file..."
             cat << EOF > ./.env
-            NODE_ENV=production
+            NODE_ENV=development
             DATABASE_URL=${{ env.DB_URL }}
             REDIS_URL=${{ env.RD_URL }}
             STORE_CORS=${{ env.CORS_ORIGINS }}
