@@ -1,12 +1,3 @@
-// import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
-
-// export async function GET(
-//   req: MedusaRequest,
-//   res: MedusaResponse
-// ) {
-//   res.sendStatus(200);
-// }
-
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
 import Stripe from "stripe";
 
@@ -33,6 +24,10 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       return res.status(404).json({ message: "Cart not found" });
     }
 
+    if (!cart.email) {
+      return res.status(400).json({ message: "Email is required for Stripe receipt" });
+    }
+
     // Stripeのline_items用に変換
     const line_items = cart.items.map((item) => ({
       price_data: {
@@ -49,6 +44,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       payment_method_types: ["card"],
       line_items,
       mode: "payment",
+      customer_email: cart.email,
       success_url: `${process.env.FRONTEND_URL}/success`,
       cancel_url: `${process.env.FRONTEND_URL}/cancel`,
       metadata: {

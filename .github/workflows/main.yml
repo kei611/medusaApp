@@ -1,0 +1,108 @@
+name: CD Pipeline to EC2 (No CI Phase)
+
+on:
+  push:
+    branches:
+      - main # main ブランチへのプッシュでトリガー
+
+env:
+  # 環境変数 (GitHub Secrets を使用することを強く推奨)
+  EC2_HOST: ${{ secrets.EC2_HOST }} # EC2のパブリックIPまたはDNS名
+  EC2_USER: ec2-user # EC2のユーザー名 (例: Amazon Linuxはec2-user)
+  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }} # EC2接続用のSSH秘密鍵
+
+  # Medusa Backend の環境変数 (EC2上の.envに書き込む用)
+  DB_URL: ${{ secrets.DATABASE_URL }}
+  RD_URL: ${{ secrets.REDIS_URL }}
+  CORS_ORIGINS: ${{ secrets.CORS_ALLOWED_ORIGINS }}
+  S3_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+  S3_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+  S3_BASE: ${{ secrets.S3_BASE_URL }}
+  JWT: ${{ secrets.JWT_SECRET }}
+  COOKIE: ${{ secrets.COOKIE_SECRET }}
+  # ... その他必要なMedusa環境変数
+  # Next.js ストアフロントの環境変数 (EC2上の.envに書き込む用)
+  NEXT_MEDUSA_URL: ${{ secrets.NEXT_PUBLIC_MEDUSA_BACKEND_URL }}
+  NEXT_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+  # ... その他必要なNext.js環境変数
+
+jobs:
+  deploy: # ジョブ名を deploy に変更
+    runs-on: ubuntu-latest # GitHub Actions が実行されるランナー環境
+
+    steps:
+      - name: Checkout code (Just for SSH action, not for local build)
+        uses: actions/checkout@v4
+        # SSH接続アクションがリポジトリのコンテキストにアクセスするために必要ですが、
+        # ここではビルドは行いません。
+
+      # --- CD フェーズ (EC2インスタンスへデプロイ) ---
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ env.EC2_USER }}
+          key: ${{ env.SSH_PRIVATE_KEY }}
+          script: |
+            # EC2上のプロジェクトルートディレクトリに移動
+            PROJECT_DIR="/home/${{ env.EC2_USER }}/your-medusa-project" # あなたのプロジェクトディレクトリのパスに置き換える
+            cd ${PROJECT_DIR}
+
+            # Gitから最新のコードをプル
+            echo "Pulling latest code from GitHub..."
+            git pull origin main
+
+            # 環境変数ファイルを更新 (本番環境のパスと環境変数を正確に書き込む)
+            echo "Updating .env file..."
+            cat << EOF > ./.env
+            NODE_ENV=production
+            DATABASE_URL=${{ env.DB_URL }}
+            REDIS_URL=${{ env.RD_URL }}
+            STORE_CORS=${{ env.CORS_ORIGINS }}
+            ADMIN_CORS=${{ env.CORS_ORIGINS }} # Adminも同じCORSを使う場合
+            AUTH_CORS=${{ env.CORS_ORIGINS }} # Authも同じCORSを使う場合
+            JWT_SECRET=${{ env.JWT }}
+            COOKIE_SECRET=${{ env.COOKIE }}
+            S3_ACCESS_KEY_ID=${{ env.S3_ID }}
+            S3_SECRET_ACCESS_KEY=${{ env.S3_KEY }}
+            S3_BASE_URL=${{ env.S3_BASE }}
+            FRONTEND_URL=${{ env.NEXT_APP_URL }} # Next.jsのURLを渡す (Medusa backendが参照する場合)
+            NEXT_PUBLIC_MEDUSA_BACKEND_URL=${{ env.NEXT_MEDUSA_URL }}
+            NEXT_PUBLIC_APP_URL=${{ env.NEXT_APP_URL }}
+            # ... 他に必要な環境変数を追加
+            EOF
+            echo ".env file updated."
+
+            # --- Medusa Backend のデプロイ ---
+            echo "Deploying Medusa Backend..."
+            cd my-store # ここを 'my-store' に変更
+            echo "Installing Backend dependencies..."
+            npm install --production=false # 開発依存関係もインストール (ビルドのため)
+            echo "Building Medusa Backend..."
+            npm run build # TypeScriptをコンパイル
+            echo "Running database migrations..."
+            npm run migrate # データベースマイグレーション
+
+            # pm2 で Medusa バックエンドを起動/再起動
+            echo "Restarting Medusa Backend with PM2..."
+            pm2 delete medusa-backend || true # 既存のプロセスがあれば削除 (初回はエラーになるので || true)
+            pm2 start npm --name medusa-backend -- run start # package.jsonのstartスクリプトを実行
+            pm2 save # pm2設定を保存 (再起動後もプロセスが自動で立ち上がるように)
+            cd .. # プロジェクトルートに戻る
+
+            # --- Next.js Storefront のデプロイ ---
+            echo "Deploying Next.js Storefront..."
+            cd my-store-storefront # ここは変更なし
+            echo "Installing Storefront dependencies..."
+            npm install --production=false # 開発依存関係もインストール (ビルドのため)
+            echo "Building Next.js Storefront..."
+            npm run build # Next.jsを本番用にビルド
+
+            # pm2 で Next.js ストアフロントを起動/再起動
+            echo "Restarting Next.js Storefront with PM2..."
+            pm2 delete medusa-storefront || true
+            pm2 start npm --name medusa-storefront -- run start # package.jsonのstartスクリプトを実行
+            pm2 save
+            cd .. # プロジェクトルートに戻る
+
+            echo "Deployment finished!"
