@@ -77,25 +77,5 @@ export default defineConfig({
         },
       },
     },
-
-    [Modules.AUTH]: {
-      resolve: "@medusajs/auth",
-      options: {
-        providers: [
-          {
-            resolve: "@medusajs/auth-emailpass",
-            id: "emailpass",
-            options: {
-              hashConfig: {
-                logN: 15,
-                r: 8,
-                p: 1,
-              },
-            },
-          },
-        ],
-      },
-    },
-
   },
 });
