@@ -14,7 +14,9 @@ env:
   # Medusa Backend の環境変数 (EC2上の.envに書き込む用)
   DB_URL: ${{ secrets.DATABASE_URL }}
   RD_URL: ${{ secrets.REDIS_URL }}
-  CORS_ORIGINS: ${{ secrets.CORS_ALLOWED_ORIGINS }}
+  STORE_CORS_ORIGINS: ${{ secrets.STORE_CORS }}
+  ADMIN_CORS_ORIGINS: ${{ secrets.ADMIN_CORS }}
+  AUTH_CORS_ORIGINS: ${{ secrets.AUTH_CORS }}
   S3_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
   S3_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
   S3_BASE: ${{ secrets.S3_BASE_URL }}
@@ -22,7 +24,7 @@ env:
   COOKIE: ${{ secrets.COOKIE_SECRET }}
   # ... その他必要なMedusa環境変数
   # Next.js ストアフロントの環境変数 (EC2上の.envに書き込む用)
-  NEXT_MEDUSA_URL: ${{ secrets.NEXT_PUBLIC_MEDUSA_BACKEND_URL }}
+  NEXT_MEDUSA_URL: ${{ secrets.MEDUSA_BACKEND_URL }}
   NEXT_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
   # ... その他必要なNext.js環境変数
 
@@ -56,12 +58,12 @@ jobs:
             # 環境変数ファイルを更新 (本番環境のパスと環境変数を正確に書き込む)
             echo "Updating .env file..."
             cat << EOF > ./.env
-            NODE_ENV=production
+            NODE_ENV=development
             DATABASE_URL=${{ env.DB_URL }}
             REDIS_URL=${{ env.RD_URL }}
-            STORE_CORS=${{ env.CORS_ORIGINS }}
-            ADMIN_CORS=${{ env.CORS_ORIGINS }} # Adminも同じCORSを使う場合
-            AUTH_CORS=${{ env.CORS_ORIGINS }} # Authも同じCORSを使う場合
+            STORE_CORS=${{ env.STORE_CORS_ORIGINS }}
+            ADMIN_CORS=${{ env.ADMIN_CORS_ORIGINS }} # Adminも同じCORSを使う場合
+            AUTH_CORS=${{ env.AUTH_CORS_ORIGINS }} # Authも同じCORSを使う場合
             JWT_SECRET=${{ env.JWT }}
             COOKIE_SECRET=${{ env.COOKIE }}
             S3_ACCESS_KEY_ID=${{ env.S3_ID }}
