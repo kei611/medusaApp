@@ -7,6 +7,12 @@ loadEnv(process.env.NODE_ENV || "development", process.cwd());
 console.log("S3 BASE URL:", process.env.S3_BASE_URL);
 console.log("Driver:", process.env.FILESYSTEM_DRIVER);
 
+export const admin = {
+  path: process.env.MEDUSA_ADMIN_PATH || "/admin",
+  backend_url: process.env.MEDUSA_BACKEND_URL || "https://null-acception.com",
+  disable: process.env.DISABLE_MEDUSA_ADMIN === "true",
+};
+
 export default defineConfig({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
