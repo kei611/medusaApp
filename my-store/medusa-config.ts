@@ -7,7 +7,11 @@ loadEnv(process.env.NODE_ENV || "development", process.cwd());
 console.log("S3 BASE URL:", process.env.S3_BASE_URL);
 console.log("Driver:", process.env.FILESYSTEM_DRIVER);
 
-const adminPath = (process.env.ADMIN_PATH || "/app") as `/${string}`;
+export const admin = {
+  path: process.env.MEDUSA_ADMIN_PATH || "/app",
+  backend_url: process.env.MEDUSA_BACKEND_URL || "https://null-acception.com",
+  disable: process.env.DISABLE_MEDUSA_ADMIN === "true",
+};
 
 export default defineConfig({
   projectConfig: {
@@ -19,12 +23,6 @@ export default defineConfig({
       jwtSecret: process.env.JWT_SECRET || "supersecret",
       cookieSecret: process.env.COOKIE_SECRET || "supersecret",
     },
-  },
-
-  admin: {
-    path: adminPath,
-    backendUrl: process.env.MEDUSA_BACKEND_URL || "https://null-acception.com",
-    disable: process.env.DISABLE_MEDUSA_ADMIN === "true",
   },
 
   plugins: [
@@ -104,5 +102,6 @@ export default defineConfig({
         ],
       },
     },
+
   },
 });
