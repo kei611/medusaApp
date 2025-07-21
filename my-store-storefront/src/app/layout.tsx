@@ -9,6 +9,15 @@ export const metadata: Metadata = {
 export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en" data-mode="light">
+      <head>
+        {/* Google Fontsの読み込みリンク */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Diplomata+SC&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body>
         <main className="relative">{props.children}</main>
       </body>

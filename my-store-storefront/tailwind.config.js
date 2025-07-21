@@ -69,6 +69,7 @@ module.exports = {
           "Ubuntu",
           "sans-serif",
         ],
+        diplomata: ["'Diplomata SC'", "cursive"],
       },
       keyframes: {
         ring: {

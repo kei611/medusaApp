@@ -43,7 +43,7 @@ import { getMoodboards } from "@lib/data/get-moodboards"
 import ZettelGraph3D from "@modules/moodboard/components/ZettelGraph3D"
 
 export default async function MoodboardPage() {
-  const moodboards = await getMoodboards()
+  const moodboards = await ()
 
   // ここでは最初のMoodboardだけを表示
   const moodboard = moodboards[0]
