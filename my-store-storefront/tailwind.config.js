@@ -12,6 +12,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      boxShadow: {
+        text: '1px 1px 0 currentColor, -1px -1px 0 currentColor',
+      },
       transitionProperty: {
         width: "width margin",
         height: "height",
