@@ -35,17 +35,16 @@ env:
   NEXT_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
   # ... その他必要なNext.js環境変数
 
+# ... 省略された冒頭部分は変更なし ...
+
 jobs:
-  deploy: # ジョブ名を deploy に変更
-    runs-on: ubuntu-latest # GitHub Actions が実行されるランナー環境
+  deploy:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code (Just for SSH action, not for local build)
+      - name: Checkout code
         uses: actions/checkout@v4
-        # SSH接続アクションがリポジトリのコンテキストにアクセスするために必要ですが、
-        # ここではビルドは行いません。
 
-      # --- CD フェーズ (EC2インスタンスへデプロイ) ---
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -53,54 +52,45 @@ jobs:
           username: ${{ env.EC2_USER }}
           key: ${{ env.SSH_PRIVATE_KEY }}
           script: |
-            # EC2上のプロジェクトルートディレクトリに移動
-            # ★ここを 'medusaApp' に変更
             PROJECT_DIR="/home/${{ env.EC2_USER }}/medusaApp"
             cd ${PROJECT_DIR}
 
-            # Gitから最新のコードをプル
-            echo "Pulling latest code from GitHub..."
+            echo "📦 Pulling latest code..."
             git pull origin main
 
-            # 環境変数ファイルを更新 (本番環境のパスと環境変数を正確に書き込む)
-            echo "Updating .env file..."
+            # .env for Medusa Backend
+            echo "⚙️ Writing .env for Medusa Backend..."
             cat << EOF > ./my-store/.env
             NODE_ENV=development
             DATABASE_URL=${{ env.DB_URL }}
             REDIS_URL=${{ env.RD_URL }}
             STORE_CORS=${{ env.STORE_CORS_ORIGINS }}
-            ADMIN_CORS=${{ env.ADMIN_CORS_ORIGINS }} # Adminも同じCORSを使う場合
-            AUTH_CORS=${{ env.AUTH_CORS_ORIGINS }} # Authも同じCORSを使う場合
+            ADMIN_CORS=${{ env.ADMIN_CORS_ORIGINS }}
+            AUTH_CORS=${{ env.AUTH_CORS_ORIGINS }}
             JWT_SECRET=${{ env.JWT }}
             COOKIE_SECRET=${{ env.COOKIE }}
             S3_ACCESS_KEY_ID=${{ env.S3_ID }}
             S3_SECRET_ACCESS_KEY=${{ env.S3_KEY }}
             S3_BASE_URL=${{ env.S3_BASE }}
-            FRONTEND_URL=${{ env.NEXT_APP_URL }} # Next.jsのURLを渡す (Medusa backendが参照する場合)
-            NEXT_PUBLIC_MEDUSA_BACKEND_URL=${{ env.NEXT_MEDUSA_URL }}
+            FRONTEND_URL=${{ env.NEXT_APP_URL }}
+            NEXT_PUBLIC_MEDUSA_BACKEND_URL=${{ env.MEDUSA_BACKEND_URL }}
             NEXT_PUBLIC_APP_URL=${{ env.NEXT_APP_URL }}
-            # ... 他に必要な環境変数を追加
             EOF
-            echo ".env file updated."
 
-            # --- Medusa Backend のデプロイ ---
-            echo "Deploying Medusa Backend..."
-            # cd my-store # このパスは変更なし
-            echo "Installing Backend dependencies..."
+            echo "✅ .env created"
+
+            # Medusa Backend: Build & Run
+            echo "🚀 Deploying Medusa Backend..."
+            cd my-store
             npm install
-            echo "Building Medusa Backend..."
-            npm run build # TypeScriptをコンパイル
-            echo "Running database migrations..."
-            npm run migrate # データベースマイグレーション
-
-            # pm2 で Medusa バックエンドを起動/再起動
-            echo "Restarting Medusa Backend with PM2..."
-            pm2 delete medusa-backend || true # 既存のプロセスがあれば削除 (初回はエラーになるので || true)
+            npm run build
+            npm run migrate
+            pm2 delete medusa-backend || true
             pm2 start --name medusa-backend npm -- start
-            pm2 save # pm2設定を保存 (再起動後もプロセスが自動で立ち上がるように)
-            cd .. # プロジェクトルートに戻る
+            pm2 save
+            cd ..
 
-            # Next.js Storefront: .env.local
+            # .env.local for Storefront
             echo "⚙️ Writing .env.local for Storefront..."
             cat << EOF > ./my-store-storefront/.env.local
             MEDUSA_BACKEND_URL=${{ env.MEDUSA_BACKEND_URL }}
@@ -112,21 +102,16 @@ jobs:
             NEXT_PUBLIC_SANITY_PROJECT_ID=${{ env.NEXT_PUBLIC_SANITY_PROJECT_ID }}
             NEXT_PUBLIC_SANITY_DATASET=${{ env.NEXT_PUBLIC_SANITY_DATASET }}
             EOF
-            echo "✅ .env.local created in my-store-storefront"
 
-            # --- Next.js Storefront のデプロイ ---
-            echo "Deploying Next.js Storefront..."
-            cd my-store-storefront # このパスは変更なし
-            echo "Installing Storefront dependencies..."
-            npm install --production=false # 開発依存関係もインストール (ビルドのため)
-            echo "Building Next.js Storefront..."
-            npm run build # Next.jsを本番用にビルド
+            echo "✅ .env.local created"
 
-            # pm2 で Next.js ストアフロントを起動/再起動
-            echo "Restarting Next.js Storefront with PM2..."
+            # Storefront: Build & PM2 Run with cwd
+            echo "🚀 Deploying Next.js Storefront..."
+            cd my-store-storefront
+            npm install --production=false
+            npm run build
             pm2 delete medusa-storefront || true
-            pm2 start --name medusa-storefront npm -- start
+            pm2 start npm --name "medusa-storefront" --cwd ./my-store-storefront -- start
             pm2 save
-            cd .. # プロジェクトルートに戻る
 
-            echo "Deployment finished!"
+            echo "🎉 Deployment finished!"
