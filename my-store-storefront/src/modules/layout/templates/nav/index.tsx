@@ -22,7 +22,7 @@ export default async function Nav() {
           <div className="flex items-center h-full">
 <LocalizedClientLink
   href="/"
-  className="txt-compact-xlarge-plus hover:text-ui-fg-base uppercase font-diplomata text-base sm:text-xl md:text-2xl"
+  className="txt-compact-xlarge-plus hover:text-ui-fg-base uppercase font-puddles text-base sm:text-xl md:text-2xl"
   data-testid="nav-store-link"
 >
   NULL ACCEPTION

@@ -70,6 +70,7 @@ module.exports = {
           "sans-serif",
         ],
         diplomata: ["'Diplomata SC'", "cursive"],
+        puddles: ['"Rubik Puddles"', 'cursive'],
       },
       keyframes: {
         ring: {
