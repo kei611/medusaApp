@@ -22,12 +22,11 @@ export default async function Nav() {
           <div className="flex items-center h-full">
 <LocalizedClientLink
   href="/"
-  className="font-puddles text-base sm:text-2xl md:text-4xl hover:text-ui-fg-base uppercase"
+  className="font-puddles text-xl sm:text-2xl md:text-4xl hover:text-ui-fg-base uppercase"
   data-testid="nav-store-link"
 >
   NULL ACCEPTION
 </LocalizedClientLink>
-
 
           </div>
 
