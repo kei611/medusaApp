@@ -25,7 +25,7 @@ export default async function Nav() {
   className="txt-compact-xlarge-plus hover:text-ui-fg-base uppercase font-diplomata text-xl sm:text-2xl md:text-3xl"
   data-testid="nav-store-link"
 >
-  Null Store
+  NULL ACCEPTION
 </LocalizedClientLink>
 
           </div>
