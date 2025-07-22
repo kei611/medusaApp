@@ -112,7 +112,7 @@ jobs:
             npm install --production=false
             npm run build
             pm2 delete medusa-storefront || true
-            pm2 start npm --name "medusa-storefront" --cwd ./my-store-storefront -- start
+            pm2 start --name "medusa-storefront" npm -- start
             pm2 save
 
             echo "🎉 Deployment finished!"
