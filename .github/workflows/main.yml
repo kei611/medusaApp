@@ -24,7 +24,14 @@ env:
   COOKIE: ${{ secrets.COOKIE_SECRET }}
   # ... その他必要なMedusa環境変数
   # Next.js ストアフロントの環境変数 (EC2上の.envに書き込む用)
-  NEXT_MEDUSA_URL: ${{ secrets.MEDUSA_BACKEND_URL }}
+  MEDUSA_BACKEND_URL: ${{ secrets.MEDUSA_BACKEND_URL }}
+  NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY }}
+  NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
+  NEXT_PUBLIC_DEFAULT_REGION: ${{ secrets.NEXT_PUBLIC_DEFAULT_REGION }}
+  NEXT_PUBLIC_STRIPE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_KEY }}
+  REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+  NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_SANITY_PROJECT_ID }}
+  NEXT_PUBLIC_SANITY_DATASET: ${{ secrets.NEXT_PUBLIC_SANITY_DATASET }}
   NEXT_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
   # ... その他必要なNext.js環境変数
 
@@ -57,7 +64,7 @@ jobs:
 
             # 環境変数ファイルを更新 (本番環境のパスと環境変数を正確に書き込む)
             echo "Updating .env file..."
-            cat << EOF > ./.env
+            cat << EOF > ./my-store/.env
             NODE_ENV=development
             DATABASE_URL=${{ env.DB_URL }}
             REDIS_URL=${{ env.RD_URL }}
@@ -78,7 +85,7 @@ jobs:
 
             # --- Medusa Backend のデプロイ ---
             echo "Deploying Medusa Backend..."
-            cd my-store # このパスは変更なし
+            # cd my-store # このパスは変更なし
             echo "Installing Backend dependencies..."
             npm install
             echo "Building Medusa Backend..."
@@ -92,6 +99,20 @@ jobs:
             pm2 start --name medusa-backend npm -- start
             pm2 save # pm2設定を保存 (再起動後もプロセスが自動で立ち上がるように)
             cd .. # プロジェクトルートに戻る
+
+            # Next.js Storefront: .env.local
+            echo "⚙️ Writing .env.local for Storefront..."
+            cat << EOF > ./my-store-storefront/.env.local
+            MEDUSA_BACKEND_URL=${{ env.MEDUSA_BACKEND_URL }}
+            NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=${{ env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_BASE_URL=${{ env.NEXT_PUBLIC_BASE_URL }}
+            NEXT_PUBLIC_DEFAULT_REGION=${{ env.NEXT_PUBLIC_DEFAULT_REGION }}
+            NEXT_PUBLIC_STRIPE_KEY=${{ env.NEXT_PUBLIC_STRIPE_KEY }}
+            REVALIDATE_SECRET=${{ env.REVALIDATE_SECRET }}
+            NEXT_PUBLIC_SANITY_PROJECT_ID=${{ env.NEXT_PUBLIC_SANITY_PROJECT_ID }}
+            NEXT_PUBLIC_SANITY_DATASET=${{ env.NEXT_PUBLIC_SANITY_DATASET }}
+            EOF
+            echo "✅ .env.local created in my-store-storefront"
 
             # --- Next.js Storefront のデプロイ ---
             echo "Deploying Next.js Storefront..."
